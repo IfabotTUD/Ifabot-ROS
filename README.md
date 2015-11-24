@@ -6,9 +6,9 @@ The following packages are available:
 | ------------- |-------------|
 | [robot_board_driver](robot_board_driver/README.md) | Encapsulates the driver for the Robot Board|
 | [imu_board_driver](imu_board_driver/README.md) | Encapsulates the driver for the IMU Board |
-| [ifabot_base](ifabot_base/README.md) | Odometry publisher and safetycontroller |
-| [ifabot_description](ifabot_description/README.md) | Contains the description file (URDF) |
-| [ifabot_navigation](ifabot_navigation/README.md) | Provides launch files for gmapping (SLAM) and amcl (Localization) |
+| ifabot_base) | Odometry publisher and safetycontroller |
+| ifabot_description | Contains the description file (URDF) |
+| ifabot_navigation | Provides launch files for gmapping (SLAM) and amcl (Localization) |
 
 ## Installation
 
