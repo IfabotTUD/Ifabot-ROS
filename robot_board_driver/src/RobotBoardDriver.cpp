@@ -1,0 +1,271 @@
+#include <RobotBoard.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Range.h>
+#include <sensor_msgs/JointState.h>
+#include <geometry_msgs/Twist.h>
+
+#include <smart_battery_msgs/SmartBatteryStatus.h>
+#include <boost/thread/mutex.hpp>
+
+#include <dynamic_reconfigure/server.h>
+#include "robot_board_driver/RobotBoardConfig.h"
+
+#include "robot_board_driver/StopMotor.h"
+
+using namespace ifabot;
+
+
+boost::mutex mutex;
+
+#define WHEEL_RADUIS 0.1
+#define WHEEL_DISTANCE 0.411
+
+#define TICKS_PER_ROTATION 44032.0
+
+#define ULTRASONIC_MIN_RANGE 0.0f
+#define ULTRASONIC_MAX_RANGE 11.008f
+#define ULTRASONIC_FIELD_OF_VIEW M_PI/16.0f
+
+int ticks_left  = 0;
+int ticks_right = 0;
+
+ros::Publisher joint_state_publisher;
+
+ros::Publisher pub_ultrasonic_fl;
+ros::Publisher pub_ultrasonic_fc;
+ros::Publisher pub_ultrasonic_fr;
+ros::Publisher pub_ultrasonic_b;
+
+ros::Publisher pub_battery_state;
+
+RobotBoard* robot;
+
+void velocityCommandReceivedCallback(const geometry_msgs::Twist& twist){
+	// ROS sends velocities in [m/s] but the RobotBoard wants [mm/s]
+
+	double v = twist.linear.x * 1000.0;
+	double w = twist.angular.y * 1000.0;
+	if(mutex.try_lock()){
+		robot->setVelocity(v,w);
+		mutex.unlock();
+	}
+}
+
+void publishRobotJointState(RobotBoardStatus status) {
+	sensor_msgs::JointState jointState;
+	
+	jointState.header.stamp = ros::Time::now();
+
+	jointState.name.push_back("front_left_wheel");
+	jointState.name.push_back("front_right_wheel");
+	jointState.name.push_back("rear_left_wheel");
+	jointState.name.push_back("rear_right_wheel");
+	
+	ticks_left += status.tickCountRight;
+	ticks_right -= status.tickCountLeft;
+
+	double sl = ticks_left*2.0*M_PI/TICKS_PER_ROTATION;
+	double sr = ticks_right*2.0*M_PI/TICKS_PER_ROTATION;
+	
+	jointState.position.push_back(sl);
+	jointState.position.push_back(sr);
+	jointState.position.push_back(sl);
+	jointState.position.push_back(sr);
+	
+	double v = status.linearVelocity * 0.001;
+	double w = status.angularVelocity * 0.001;
+	
+	double vr = (2.0*v + w*WHEEL_DISTANCE)/(2*WHEEL_RADUIS);
+	double vl = (2.0*v - w*WHEEL_DISTANCE)/(2*WHEEL_RADUIS);
+	
+	jointState.velocity.push_back(vl);
+	jointState.velocity.push_back(vr);
+	jointState.velocity.push_back(vl);
+	jointState.velocity.push_back(vr);
+	
+	double current_motor_left = status.motorCurrentLeft;
+	double current_motor_right = status.motorCurrentRight;
+	
+	double Ki = 1;
+	
+	double effort_left = Ki * current_motor_left;
+	double effort_right = Ki * current_motor_right;
+	
+	jointState.effort.push_back(effort_left);
+	jointState.effort.push_back(effort_right);
+	jointState.effort.push_back(effort_left);
+	jointState.effort.push_back(effort_right);
+	
+	joint_state_publisher.publish(jointState);
+}
+
+void publishUltrasonicStatus(RobotBoardStatus status) {
+	sensor_msgs::Range range_front_left;
+	sensor_msgs::Range range_front_center;
+	sensor_msgs::Range range_front_right;
+	sensor_msgs::Range range_back;
+		
+	range_front_left.header.frame_id = "ultrasonic_front_left_link";
+	range_front_center.header.frame_id = "ultrasonic_front_center_link";
+	range_front_right.header.frame_id = "ultrasonic_front_right_link";
+	range_back.header.frame_id = "ultrasonic_back_link";
+	
+	range_front_left.radiation_type = sensor_msgs::Range::ULTRASOUND;
+	range_front_center.radiation_type = sensor_msgs::Range::ULTRASOUND;
+	range_front_right.radiation_type = sensor_msgs::Range::ULTRASOUND;
+	range_back.radiation_type = sensor_msgs::Range::ULTRASOUND;
+	
+	range_front_left.header.stamp = ros::Time::now();
+	range_front_center.header.stamp = ros::Time::now();
+	range_front_right.header.stamp = ros::Time::now();
+	range_back.header.stamp = ros::Time::now();
+	
+	range_front_left.range = status.ultrasonic.left * 43 * 0.001;
+	range_front_center.range = status.ultrasonic.center * 43 * 0.001;
+	range_front_right.range = status.ultrasonic.right * 43 * 0.001;
+	range_back.range = status.ultrasonic.back * 43 * 0.001;
+	
+	range_front_left.min_range = ULTRASONIC_MIN_RANGE;
+	range_front_center.min_range = ULTRASONIC_MIN_RANGE;
+	range_front_right.min_range = ULTRASONIC_MIN_RANGE;
+	range_back.min_range = ULTRASONIC_MIN_RANGE;
+	
+	range_front_left.max_range = ULTRASONIC_MAX_RANGE;
+	range_front_center.max_range = ULTRASONIC_MAX_RANGE;
+	range_front_right.max_range = ULTRASONIC_MAX_RANGE;
+	range_back.max_range = ULTRASONIC_MAX_RANGE;
+	
+	range_front_left.field_of_view = ULTRASONIC_FIELD_OF_VIEW;
+	range_front_center.field_of_view = ULTRASONIC_FIELD_OF_VIEW;
+	range_front_right.field_of_view = ULTRASONIC_FIELD_OF_VIEW;
+	range_back.field_of_view = ULTRASONIC_FIELD_OF_VIEW;
+	
+	pub_ultrasonic_fl.publish(range_front_left);
+	pub_ultrasonic_fc.publish(range_front_center);
+	pub_ultrasonic_fr.publish(range_front_right);
+	pub_ultrasonic_b.publish(range_back);	
+}
+
+void publishBatteryStatus(RobotBoardStatus status){
+	smart_battery_msgs::SmartBatteryStatus batteryStatus;
+	batteryStatus.header.stamp = ros::Time::now();
+	batteryStatus.voltage = status.accuVoltage * 0.001;
+	pub_battery_state.publish(batteryStatus);
+}
+
+void dataReceivedCallback(RobotBoardStatus status){
+	publishRobotJointState(status);
+	publishUltrasonicStatus(status);
+	publishBatteryStatus(status);
+}
+
+void dynamic_parameter_changed_callback(robot_board_driver::RobotBoardConfig &config, uint32_t level){
+	PIDParameter pidParam;
+	ROS_DEBUG("Changing dynamic parameters.");
+	pidParam.PLinearVelocity = config.Kp_lin;
+	pidParam.ILinearVelocity = config.Ki_lin; 
+	pidParam.DLinearVelocity = config.Kd_lin; 
+	pidParam.PAngularVelocity = config.Kp_ang; 
+	pidParam.IAngularVelocity= config.Ki_ang; 
+	pidParam.DAngularVelocity = config.Kd_ang; 
+	pidParam.ICurrentLeft = config.Ki_current_left; 
+	pidParam.ICurrentRight = config.Ki_current_right;
+
+	UltrasonicParameter ultrasonicParam;
+	
+	ultrasonicParam.leftRange = config.UFL_max_range / 43;
+	ultrasonicParam.leftGain = config.UFL_gain;
+	ultrasonicParam.centerRange = config.UFC_max_range / 43; 
+	ultrasonicParam.centerGain = config.UFC_gain; 
+	ultrasonicParam.rightRange = config.UFR_max_range / 43; 
+	ultrasonicParam.rightGain = config.UFR_gain;
+	ultrasonicParam.backRange = config.UB_max_range / 43;
+	ultrasonicParam.backGain = config.UB_gain;
+	
+	mutex.lock();
+	robot->setUltrasonicParameters(ultrasonicParam);
+	mutex.unlock();
+	
+	mutex.lock();
+	robot->setSendStatusPeriod(config.cycle_time);
+	mutex.unlock();
+
+	//mutex.lock();
+	//robot.setPIDCoefficiants(pidParam);
+	//mutex.unlock();
+	
+}
+
+void errorOccuredCallback(ErrorType type, std::string reason){
+	switch(type){
+		case LOST_CONNECTION:
+			ROS_FATAL("LOST_CONNECTION");
+			ros::shutdown();
+			break;
+		case LOST_PACKAGE:
+			ROS_WARN("%s",reason.c_str());
+			break;
+		case UNDECODABLE_DATASTREAM:
+			ROS_ERROR("Serial Datastream is undecodable. Check hexdump in DEBUG Console.");
+			ROS_DEBUG("Serial Datastream is undecodable. Hexdump: %s",reason.c_str());
+			break;
+	}
+}
+
+bool switchMotorsOff(robot_board_driver::StopMotor::Request  &req,
+         			robot_board_driver::StopMotor::Response &res){
+	mutex.lock();
+	robot->setMotorOff();
+	mutex.unlock();
+	return true;
+}
+
+int main(int argc, char *argv[]){
+	ros::init(argc,argv,"robot_board_driver");
+	ros::NodeHandle n("~");
+	
+	joint_state_publisher = n.advertise<sensor_msgs::JointState>("joint_state",1000);
+	pub_ultrasonic_fl = n.advertise<sensor_msgs::Range>("ultrasonic_front_left",1000);
+	pub_ultrasonic_fc = n.advertise<sensor_msgs::Range>("ultrasonic_front_center",1000);
+	pub_ultrasonic_fr = n.advertise<sensor_msgs::Range>("ultrasonic_front_right",1000);
+	pub_ultrasonic_b = n.advertise<sensor_msgs::Range>("ultrasonic_back",1000);
+	
+	pub_battery_state = n.advertise<smart_battery_msgs::SmartBatteryStatus>("battery",1000);
+	
+	std::string port;
+	ros::param::param<std::string>("~port", port, RobotBoard::DEFAULT_SERIAL_PORT);
+	int baud;
+	ros::param::param<int>("~baud", baud, RobotBoard::DEFAULT_BAUD_RATE);
+
+	ROS_INFO("Connecting to Robot Board (Port: %s, Baud: %d) ...",port.c_str(),baud);
+
+	robot = new RobotBoard(port,baud);
+	
+	robot->setOnDataReceivedCallback(dataReceivedCallback);
+	robot->setOnErrorCallback(errorOccuredCallback);
+	
+	if(robot->connectAndStartReceiving()){
+		ROS_INFO("Conneted to RobotBoard.");
+
+		ros::ServiceServer service = n.advertiseService("~stop_motor", switchMotorsOff);
+
+		mutex.lock();
+		robot->setVelocity(0,0);
+		mutex.unlock();
+		
+		ros::Subscriber sub = n.subscribe("cmd_vel", 1000, velocityCommandReceivedCallback);
+		
+		dynamic_reconfigure::Server<robot_board_driver::RobotBoardConfig> server;
+		dynamic_reconfigure::Server<robot_board_driver::RobotBoardConfig>::CallbackType f;
+		
+		f = boost::bind(&dynamic_parameter_changed_callback,_1,_2);
+		server.setCallback(f);
+		ros::spin();
+	} else {
+		ROS_FATAL("Couldn't connect to RobotBoard.");
+	}
+	
+	delete robot;
+	
+	return 0;
+}

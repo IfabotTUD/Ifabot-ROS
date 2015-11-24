@@ -1,0 +1,33 @@
+<launch>
+
+	<include file="$(find ifabot_description)/launch/description.launch" />
+
+	<node pkg="robot_board_driver" type="robot_board_driver" name="robot_board_driver">
+		  <param name="port" value="/dev/ttyS0" />
+		  <param name="baud" value="115200" />
+	</node>
+
+	<node pkg="imu_board_driver" type="imu_board_driver" name="imu_board_driver">
+		  <param name="port" value="/dev/ttyS1" />
+		  <param name="baud" value="115200" />
+	</node>
+
+	<node pkg="ifabot_base" type="ifabot_base" name="ifabot_base"/>
+	
+	<node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node" >
+		<param name="frame_id" type="string" value="hokuyo_focal_link" />	
+	</node>
+	
+	<rosparam command="load" file="$(find ifabot_base)/config/control.yaml" />
+  	<node name="controller_spawner" pkg="controller_manager" type="spawner"
+   		args="ifabot_joint_publisher ifabot_velocity_controller --shutdown-timeout 1" />
+
+	<!-- For webcam capturing use either usb_cam or gscam. -->
+	<!--<node name="usb_cam" pkg="usb_cam" type="usb_cam_node" />-->
+	<node name="gscam" pkg="gscam" type="gscam" />
+
+	<!-- For image server use mjpeg_server or web_video_server. -->
+	<node name="mjpeg_server" pkg="mjpeg_server" type="mjpeg_server" />
+	<!--<node name="web_video_server" pkg="web_video_server" type="web_video_server" />-->
+
+</launch>

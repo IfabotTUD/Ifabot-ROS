@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package>
+  <name>ifabot_description</name>
+  <version>1.0.0</version>
+  <description>The ifabot_description package. Provides a URDF-file of the IfAbot.</description>
+
+  <maintainer email="Dimitri.Henkel@mailbox.tu-dresden.de">Dimitri Henkel</maintainer>
+  <license>BSD</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>urdf</build_depend>
+  <run_depend>urdf</run_depend>
+
+  <export></export>
+</package>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <name>ifabot_base</name>
+  <version>1.0.0</version>
+  <description>The ifabot_base package. It contains the DiffDrive controller and a launch file for starting the IfAbot base (base.launch).</description>
+
+  <maintainer email="Dimitri.Henkel@mailbox.tu-dresden.de">Dimitri Henkel</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>controller_manager</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  
+  <run_depend>controller_manager</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+
+  <export></export>
+</package>

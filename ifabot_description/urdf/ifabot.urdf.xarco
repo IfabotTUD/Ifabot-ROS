@@ -1,0 +1,248 @@
+<robot name="ifabot">
+
+
+
+  <material name="dark_grey"><color rgba="0.2 0.2 0.2 1.0" /></material>
+  <material name="blue"><color rgba="0.1 0.1 0.7 1.0" /></material>
+  <material name="yellow"><color rgba="0.8 0.8 0.0 1.0" /></material>
+  <material name="black"><color rgba="0.15 0.15 0.15 1.0" /></material>
+
+	<link name="base_link" />
+
+  <joint name="base_link_joint" type="fixed">
+			<origin xyz="0 0 0.07"/>
+    <parent link="base_link"/>
+    <child link="chassis_link" />
+  </joint>
+
+  <link name="chassis_link">
+		<visual>
+      <geometry>
+				<mesh filename="package://ifabot_description/meshes/ifabot_base.stl"/>
+      </geometry>
+			<material name="blue" />
+    </visual>
+  </link>
+
+  <link name="front_right_wheel_link">
+    <visual>
+      <geometry>
+      	<mesh filename="package://ifabot_description/meshes/ifabot_wheel.stl"/>
+			</geometry>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<material name="black" />
+    </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+        <geometry>
+          <cylinder length="0.05" radius="0.1"/>
+        </geometry>
+      </collision>
+  </link>
+
+  <link name="front_left_wheel_link">
+    <visual>
+      <geometry>
+				<mesh filename="package://ifabot_description/meshes/ifabot_wheel.stl"/>
+      </geometry>
+			<material name="black" />
+			<origin xyz="0 0 0" rpy="0 0 3.14"/>
+    </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="-1.57079632679 0 0"/>
+        <geometry>
+          <cylinder length="0.05" radius="0.1"/>
+        </geometry>
+      </collision>
+  </link>
+
+  <link name="rear_right_wheel_link">
+    <visual>
+      <geometry>
+				<mesh filename="package://ifabot_description/meshes/ifabot_wheel.stl"/>
+      </geometry>
+			<material name="black" />
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="1.57079632679 0 0"/>
+        <geometry>
+          <cylinder length="0.05" radius="0.1"/>
+        </geometry>
+      </collision>
+  </link>
+
+  <link name="rear_left_wheel_link">
+    <visual>
+      <geometry>
+				<mesh filename="package://ifabot_description/meshes/ifabot_wheel.stl"/>
+      </geometry>
+			<material name="black" />
+			<origin xyz="0 0 0" rpy="0 0 3.14"/>
+    </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="-1.57079632679 0 0"/>
+        <geometry>
+          <cylinder length="0.05" radius="0.1"/>
+        </geometry>
+      </collision>
+  </link>
+
+  <link name="ultrasonic_back_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://ifabot_description/meshes/ultrasonic_sensor.stl"/>
+      </geometry>
+			<origin xyz="0 0 0" rpy="0 0 3.14"/>
+			<material name="dark_grey"/>
+    </visual>
+  </link>
+
+  <link name="ultrasonic_front_left_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://ifabot_description/meshes/ultrasonic_sensor.stl"/>
+      </geometry>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<material name="dark_grey"/>
+    </visual>
+  </link>
+
+  <link name="ultrasonic_front_center_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://ifabot_description/meshes/ultrasonic_sensor.stl"/>
+      </geometry>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<material name="dark_grey"/>
+    </visual>
+  </link>
+
+  <link name="ultrasonic_front_right_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://ifabot_description/meshes/ultrasonic_sensor.stl"/>
+      </geometry>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<material name="dark_grey"/>
+    </visual>
+  </link>
+
+  <link name="hokuyo_focal_link">
+  </link>
+
+  <joint name="hokuyo_focal_joint" type="fixed">
+    <parent link="hokuyo_link"/>
+    <child link="hokuyo_focal_link"/>
+    <origin xyz="0 0 0.05"/>
+  </joint>
+
+  <link name="hokuyo_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://ifabot_description/meshes/hokuyo_scanner.stl"/>
+      </geometry>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<material name="dark_grey"/>
+    </visual>
+  </link>
+
+  <joint name="hokuyo_joint" type="fixed">
+    <parent link="chassis_link"/>
+    <child link="hokuyo_link"/>
+    <origin xyz="0 0 0.140"/>
+  </joint>
+
+  <joint name="ultrasonic_back_joint" type="fixed">
+    <parent link="chassis_link"/>
+    <child link="ultrasonic_back_link"/>
+    <origin xyz="-0.2258 0 0.059517" rpy="0 0 3.14159265359"/>
+  </joint>
+
+  <joint name="ultrasonic_front_center_joint" type="fixed">
+    <parent link="chassis_link"/>
+    <child link="ultrasonic_front_center_link"/>
+    <origin xyz="0.2258 0 0.069988"/>
+  </joint>
+
+  <joint name="ultrasonic_front_left_joint" type="fixed">
+    <parent link="chassis_link"/>
+    <child link="ultrasonic_front_left_link"/>
+    <origin xyz="0.2258 0.120 0.069988"/>
+  </joint>
+
+  <joint name="ultrasonic_front_right_joint" type="fixed">
+    <parent link="chassis_link"/>
+    <child link="ultrasonic_front_right_link"/>
+    <origin xyz="0.2258 -0.120 0.069988"/>
+  </joint>
+
+  <joint name="front_right_wheel" type="continuous">
+    <parent link="chassis_link"/>
+    <child link="front_right_wheel_link"/>
+    <axis xyz="0 1 0"/>
+    <origin xyz="0.1195 -0.207 0.04"/>
+  </joint>
+
+  <joint name="front_left_wheel" type="continuous">
+    <parent link="chassis_link"/>
+    <child link="front_left_wheel_link"/>
+    <axis xyz="0 1 0"/>
+    <origin xyz="0.1195 0.207 0.04"/>
+  </joint>
+
+  <joint name="rear_right_wheel" type="continuous">
+    <parent link="chassis_link"/>
+    <child link="rear_right_wheel_link"/>
+    <axis xyz="0 1 0"/>
+    <origin xyz="-0.1195 -0.207 0.04"/>
+  </joint>
+
+  <joint name="rear_left_wheel" type="continuous">
+    <parent link="chassis_link"/>
+    <child link="rear_left_wheel_link"/>
+    <axis xyz="0 1 0"/>
+    <origin xyz="-0.1195 0.207 0.04"/>
+  </joint>
+
+  <transmission name="front_right_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="front_right_wheel">
+    	<hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="front_right_actuator">
+    	<mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+	</transmission>
+
+  <transmission name="front_left_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="front_left_wheel">
+    	<hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="front_left_actuator">
+    	<mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+	</transmission>
+
+  <transmission name="rear_right_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="rear_right_wheel">
+    	<hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="rear_right_actuator">
+    	<mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+	</transmission>
+
+  <transmission name="rear_left_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="rear_left_wheel">
+    	<hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="rear_left_actuator">
+    	<mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+	</transmission>
+
+</robot>
