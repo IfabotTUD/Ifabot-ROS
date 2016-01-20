@@ -20,15 +20,15 @@ gen.add("Ki_current_right",    int_t,    0, "Ki current right motor control", 15
 
 
 gen.add("UFL_max_range",    int_t,    0, "Ultrasonic front left max range in millimeter", 11008,  43, 11008)
-gen.add("UFL_gain",    int_t,    0, "Ultrasonic front left gain", 10,  0, 31)
+gen.add("UFL_gain",    int_t,    0, "Ultrasonic front left gain", 0,  0, 31)
 
 gen.add("UFC_max_range",    int_t,    0, "Ultrasonic front center max range in millimeter", 11008,  43, 11008)
-gen.add("UFC_gain",    int_t,    0, "Ultrasonic front center gain", 10,  0, 31)
+gen.add("UFC_gain",    int_t,    0, "Ultrasonic front center gain", 0,  0, 31)
 
 gen.add("UFR_max_range",    int_t,    0, "Ultrasonic front right max range in millimeter", 11008,  43, 11008)
-gen.add("UFR_gain",    int_t,    0, "Ultrasonic front right gain", 10,  0, 31)
+gen.add("UFR_gain",    int_t,    0, "Ultrasonic front right gain", 0,  0, 31)
 
 gen.add("UB_max_range",    int_t,    0, "Ultrasonic back max range in millimeter", 11008,  43, 11008)
-gen.add("UB_gain",    int_t,    0, "Ultrasonic back gain", 10,  0, 31)
+gen.add("UB_gain",    int_t,    0, "Ultrasonic back gain", 0,  0, 31)
 
 exit(gen.generate(PACKAGE, "robot_board_driver", "RobotBoard"))
