@@ -4,6 +4,9 @@
 		<param name="deadzone" value="0.1" />
 		<param name="autorepeat_rate" value="20" />
 	</node>
-	<node pkg="teleop_twist_joy" type="teleop_node" name="teleop_twist_joy" />
+	<node pkg="teleop_twist_joy" type="teleop_node" name="teleop_twist_joy" >
+	<remap from="/cmd_vel" to="/ifabot_velocity_controller/cmd_vel" />	
+</node>
+
 
 </launch>
